@@ -1,6 +1,6 @@
 FROM python:3.9-slim-buster
 
-RUN pip install vllm ray
+RUN pip install vllm
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y wget libpq-dev gcc g++ && \
