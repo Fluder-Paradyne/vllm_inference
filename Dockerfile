@@ -1,14 +1,25 @@
-FROM nvcr.io/nvidia/cuda:11.8.0-devel-ubuntu22.04
+FROM continuumio/miniconda3:23.5.2-0
 
-RUN apt update && apt upgrade -y
-RUN apt install -y python3 python3-pip git
+WORKDIR /app/vllm
 
-RUN pip install --upgrade --no-cache-dir torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
-RUN pip install vllm
+# Upgrade OS Packages
+RUN set -eux; \
+    apt-get update \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
 
-ARG model
-ARG gpu
-ENV model=$model
-ENV gpu=$gpu
+COPY environment.yml /app/vllm
 
-CMD python -m vllm.entrypoints.api_server --model $model --tensor-parallel-size $gpu
+# Preparing Conda Environment
+RUN apt-get update \
+    && apt-get install -y build-essential \
+    && conda env create \
+    && apt-get purge -y --auto-remove build-essential \
+    && pip install --upgrade ray pyarrow pandas \
+    && rm -fr /var/lib/apt/lists/*
+
+COPY entrypoint.sh /app/vllm
+
+ENV PATH /opt/conda/envs/vllm/bin:$PATH
+
+ENTRYPOINT [ "/app/vllm/entrypoint.sh" ]
