@@ -1,11 +1,10 @@
-FROM python:3.10-slim-buster
+FROM nvcr.io/nvidia/cuda:11.8-devel-ubuntu22.04
 
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y wget libpq-dev gcc g++ && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt update && apt upgrade -y
+RUN apt install -y python3 python3-pip git
 
-RUN pip install vllm
+RUN pip install transformers==4.33.2
+RUN pip install vllm==0.2.0
 
 ARG model
 ARG gpu
